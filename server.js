@@ -24,12 +24,18 @@ app.use(express.json());
 app.get('/api/todos', async(req, res) => {
     try {
         const result = await client.query(`
+        SELECT * 
+        FROM todos;
+        `);
         
-        `)
-        
-        res.json(result.rows);
-        
+        res.json(result.rows);        
     }
-})
+    catch(err) {
+        console.log(err);
+        res.status(500).json({
+            error:err.message || err
+        });
+    }
+});
 
 

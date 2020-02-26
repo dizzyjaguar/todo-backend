@@ -12,7 +12,7 @@ client.connect();
 
 //App setup
 const app = express();
-const PORT = process.env.PORT;
+const port = process.env.PORT || 3000;
 app.use(morgan('dev'));
 app.use(cors());
 app.use(express.static('public'));
@@ -20,7 +20,7 @@ app.use(express.json());
 
 //API ROUTES
 
-//todo route
+// route to GET all todos
 app.get('/api/todos', async(req, res) => {
     try {
         const result = await client.query(`
@@ -38,4 +38,38 @@ app.get('/api/todos', async(req, res) => {
     }
 });
 
+// route to POST a new todo
+app.post('/api/todos', async(req, res) => {
+    try {
+        const result = await client.query(`
+        INSERT INTO todos (task, complete)
+        VALUES ($1, false)
+        RETURNING *;
+        `,
+        [req.body.task]
+        );
 
+        res.json(result.rows[0]);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({
+            error: err.message || err
+        });
+    }
+});
+
+
+
+
+
+
+
+// start server
+app.listen(port, () => {
+    console.log('the server is running :D on PORT', port);
+});
+
+module.exports = {
+    app: app,
+};

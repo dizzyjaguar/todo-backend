@@ -67,12 +67,11 @@ app.put('/api/todos/:id', async (req, res) => {
         const result = await client.query(`
         UPDATE todos
         SET complete=$1
-        WHERE id =${req.params.id}
+        WHERE id = ${req.params.id}
         returning *;
         `,
         [req.body.complete]
         );
-
 
         res.json(result.rows[0]);
     }
@@ -85,7 +84,21 @@ app.put('/api/todos/:id', async (req, res) => {
 });
 
 // route to delete a todo
-app.delete('/api/todos:id')
+app.delete('/api/todos/:id', async(req, res) => {
+    try {
+        const result = await client.query(`
+        DELETE FROM todos where id = ${req.params.id}
+        `);
+
+        res.json(result.rows);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({
+            error: err.message || err
+        });
+    }
+});
 
 
 

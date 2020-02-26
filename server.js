@@ -18,6 +18,49 @@ app.use(cors());
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(express.json());
+// everything that starts with "/api" below here requires an auth token!
+
+
+// Auth Routes
+const createAuthRoutes = require('./lib/auth/create-auth-routes');
+
+const authRoutes = createAuthRoutes({
+    selectUser(email) {
+        return client.query(`
+        SELECT id, email, hash 
+        FROM users
+        WHERE email = $1;
+        `,
+        [email]
+        ).then(result => result.rows[0]);
+    },
+    insertUser(user, hash) {
+        return client.query(`
+        INSERT into users (email, hash)
+        VALUES ($1, $2)
+        RETURNING id, email;
+        `,
+        [user.email, hash]
+        ).then(result => result.rows[0]);
+    }
+});
+
+// before ensure auth, but after other middleware:
+app.use('/api/auth', authRoutes);
+
+const ensureAuth = require('./lib/auth/ensure-auth');
+app.use('/api', ensureAuth);
+
+
+
+
+
+
+
+
+
+
+
 
 //API ROUTES
 
@@ -26,8 +69,10 @@ app.get('/api/todos', async(req, res) => {
     try {
         const result = await client.query(`
         SELECT * 
-        FROM todos;
-        `);
+        FROM todos WHERE user_id=$1;
+        `,
+        [req.userId]
+        );
         
         res.json(result.rows);        
     }

@@ -59,6 +59,27 @@ app.post('/api/todos', async(req, res) => {
     }
 });
 
+// route to update (PUT) the todo from complete or incomplete
+app.put('/api/todos:id', async (req, res) => {
+    try {
+        const result = await client.query(`
+        UPDATE todos
+        SET complete=$1
+        WHERE id =${req.params.id}
+        returning *;
+        `,
+        [req.body.complete]
+        );
+
+        res.json(result.rows[0]);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({
+            error: err.message || err
+        });
+    }
+});
 
 
 

@@ -21,9 +21,11 @@ app.use(express.json());
 // everything that starts with "/api" below here requires an auth token!
 
 
+//--------------------------------------
 // Auth Routes
+// this is grabbing from our create auth scripts
 const createAuthRoutes = require('./lib/auth/create-auth-routes');
-
+// creating our own routes with the create-auth-routes, for selectUser and insertUser
 const authRoutes = createAuthRoutes({
     selectUser(email) {
         return client.query(`
@@ -46,18 +48,20 @@ const authRoutes = createAuthRoutes({
 });
 
 // before ensure auth, but after other middleware:
+// use our auth routes
 app.use('/api/auth', authRoutes);
-
+// this adds auth enure, which im assuming checkts the tokens on requests to all of our routes, off anythings coming from the /api route... so all of them
 const ensureAuth = require('./lib/auth/ensure-auth');
 app.use('/api', ensureAuth);
-
-
+//--------------------------------------
 
 
 
 //API ROUTES
 
 // route to GET all todos
+// we now need to get our userId from all of our requests, since we need to authorize, 
+// and that our todos always are related to a user_id of our users table
 app.get('/api/todos', async(req, res) => {
     try {
         const result = await client.query(`

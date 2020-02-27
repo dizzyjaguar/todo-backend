@@ -55,13 +55,6 @@ app.use('/api', ensureAuth);
 
 
 
-
-
-
-
-
-
-
 //API ROUTES
 
 // route to GET all todos
@@ -88,11 +81,11 @@ app.get('/api/todos', async(req, res) => {
 app.post('/api/todos', async(req, res) => {
     try {
         const result = await client.query(`
-        INSERT INTO todos (task, complete)
-        VALUES ($1, false)
+        INSERT INTO todos (user_id, task, complete)
+        VALUES ($1, $2, false)
         RETURNING *;
         `,
-        [req.body.task]
+        [req.userId, req.body.task]
         );
 
         res.json(result.rows[0]);
